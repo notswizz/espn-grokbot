@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ESPN Fantasy Connect</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      width: 360px;
+      font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #fff;
+      color: #111;
+    }
+    .shell { padding: 16px; }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      font-weight: 650;
+      color: #111;
+    }
+    .sub {
+      margin: 0 0 12px;
+      font-size: 12px;
+      color: #666;
+      line-height: 1.35;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 12px;
+      font-size: 12px;
+      color: #666;
+      min-height: 16px;
+    }
+    .status .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #bbb;
+      flex: 0 0 auto;
+    }
+    .status.ready { color: #0d7a3e; }
+    .status.ready .dot { background: #1a9d55; }
+    .status.warn { color: #9a6700; }
+    .status.warn .dot { background: #d4a017; }
+    .card {
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+    .field-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .field-label span {
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #666;
+    }
+    .reveal {
+      border: 0;
+      background: transparent;
+      color: #1a73e8;
+      font: 600 11px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+      cursor: pointer;
+      padding: 2px 0;
+    }
+    .value-wrap {
+      position: relative;
+      background: #fafafa;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      min-height: 38px;
+      overflow: hidden;
+    }
+    .value {
+      margin: 0;
+      padding: 9px 10px;
+      font: 11.5px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #111;
+      white-space: nowrap;
+      overflow: hidden;
+      word-break: break-all;
+    }
+    .value.expanded {
+      white-space: pre-wrap;
+      max-height: 120px;
+      overflow: auto;
+    }
+    .value.truncated {
+      text-overflow: ellipsis;
+    }
+    .value.empty { color: #999; font-style: italic; }
+    .btn {
+      width: 100%;
+      margin-top: 8px;
+      border: 0;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font: 600 12.5px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+      cursor: pointer;
+      color: #fff;
+      background: #1a73e8;
+    }
+    .btn:hover:not(:disabled) { background: #1669d2; }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+      background: #1a73e8;
+    }
+    .btn.copied { background: #0d7a3e; }
+    details.details {
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #fff;
+    }
+    details.details summary {
+      cursor: pointer;
+      list-style: none;
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      user-select: none;
+    }
+    details.details summary::-webkit-details-marker { display: none; }
+    details.details summary::before { content: "▸ "; color: #999; }
+    details.details[open] summary::before { content: "▾ "; }
+    #debug {
+      margin: 8px 0 0;
+      white-space: pre-wrap;
+      font: 10.5px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <h1>ESPN Fantasy Connect</h1>
+    <p class="sub">Copy each value into Fantasy Football GM's secure fields.</p>
+
+    <p id="status" class="status"><span class="dot" aria-hidden="true"></span><span id="status-text">Checking…</span></p>
+
+    <section class="card" data-field="espn_s2">
+      <div class="field-label">
+        <span>espn_s2</span>
+        <button type="button" class="reveal" data-reveal="espn_s2">Show</button>
+      </div>
+      <div class="value-wrap">
+        <pre id="espn_s2" class="value empty truncated" aria-label="espn_s2">Not found yet</pre>
+      </div>
+      <button id="copy_s2" class="btn" type="button" disabled>Copy espn_s2</button>
+    </section>
+
+    <section class="card" data-field="swid">
+      <div class="field-label">
+        <span>SWID</span>
+        <button type="button" class="reveal" data-reveal="swid">Show</button>
+      </div>
+      <div class="value-wrap">
+        <pre id="swid" class="value empty truncated" aria-label="SWID">Not found yet</pre>
+      </div>
+      <button id="copy_swid" class="btn" type="button" disabled>Copy SWID</button>
+    </section>
+
+    <details class="details">
+      <summary>Details</summary>
+      <pre id="debug"></pre>
+    </details>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

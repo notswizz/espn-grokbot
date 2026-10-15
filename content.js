@@ -36,30 +36,50 @@ async function copyText(text) {
   }
 }
 
-function payload(credentials) {
-  return JSON.stringify(
-    {
-      espn_s2: credentials.espn_s2,
-      swid: credentials.swid,
-    },
-    null,
-    2
-  );
+function flashCopied(button, label) {
+  const original = button.textContent;
+  button.classList.add("copied");
+  button.textContent = `✓ Copied ${label}`;
+  clearTimeout(button._copiedTimer);
+  button._copiedTimer = setTimeout(() => {
+    button.classList.remove("copied");
+    button.textContent = original;
+  }, 1500);
 }
 
 function field(label, value) {
-  const wrap = document.createElement("label");
-  wrap.className = "field";
+  const wrap = document.createElement("div");
+  wrap.className = "card";
+
+  const headingRow = document.createElement("div");
+  headingRow.className = "field-label";
 
   const heading = document.createElement("span");
   heading.textContent = label;
-  wrap.append(heading);
 
-  const box = document.createElement("textarea");
-  box.readOnly = true;
-  box.value = value || "Not found yet. Finish signing in, then reopen this.";
-  box.rows = value ? 3 : 2;
-  wrap.append(box);
+  const reveal = document.createElement("button");
+  reveal.type = "button";
+  reveal.className = "reveal";
+  reveal.textContent = "Show";
+
+  headingRow.append(heading, reveal);
+
+  const valueWrap = document.createElement("div");
+  valueWrap.className = "value-wrap";
+
+  const box = document.createElement("pre");
+  box.className = value ? "value truncated" : "value empty truncated";
+  box.dataset.full = value || "";
+  box.textContent = value || "Not found yet. Finish signing in, then reopen this.";
+
+  reveal.addEventListener("click", () => {
+    const expanded = box.classList.toggle("expanded");
+    box.classList.toggle("truncated", !expanded);
+    reveal.textContent = expanded ? "Hide" : "Show";
+  });
+
+  valueWrap.append(box);
+  wrap.append(headingRow, valueWrap);
   return wrap;
 }
 
@@ -82,80 +102,157 @@ function createPanel(credentials) {
       align-items: center;
       justify-content: center;
       padding: 24px;
-      background: rgba(15, 18, 22, 0.62);
-      font: 14px/1.45 "Segoe UI", system-ui, sans-serif;
-      color: #17202a;
+      background: rgba(0, 0, 0, 0.35);
+      font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #111;
     }
     .dialog {
-      width: min(520px, 100%);
+      width: min(400px, 100%);
       max-height: min(640px, 100%);
       overflow: auto;
+      border-radius: 8px;
       background: #fff;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+      border: 1px solid #e5e5e5;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     }
+    .inner { padding: 16px; }
     h1 {
-      margin: 0 0 8px;
-      font-size: 18px;
-      line-height: 1.3;
-    }
-    p {
-      margin: 0 0 16px;
-      color: #4d5966;
-    }
-    .field {
-      display: block;
-      margin-bottom: 12px;
-    }
-    .field span {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 12px;
+      margin: 0 0 4px;
+      font-size: 16px;
       font-weight: 650;
-      letter-spacing: 0.02em;
+      color: #111;
+    }
+    .sub {
+      margin: 0 0 12px;
+      color: #666;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 12px;
+      font-size: 12px;
+      color: #666;
+    }
+    .status .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #bbb;
+      flex: 0 0 auto;
+    }
+    .status.ready { color: #0d7a3e; }
+    .status.ready .dot { background: #1a9d55; }
+    .status.warn { color: #9a6700; }
+    .status.warn .dot { background: #d4a017; }
+    .note {
+      margin: 0 0 12px;
+      color: #666;
+      font-size: 12px;
+    }
+    .card {
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+    .field-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .field-label span {
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
+      color: #666;
     }
-    textarea {
-      width: 100%;
-      box-sizing: border-box;
-      resize: vertical;
-      border: 1px solid #d5dbe3;
-      border-radius: 10px;
-      padding: 10px;
-      font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
-      color: #17202a;
-      background: #f7f8fa;
+    .reveal {
+      border: 0;
+      background: transparent;
+      color: #1a73e8;
+      font: 600 11px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+      cursor: pointer;
+      padding: 2px 0;
     }
+    .value-wrap {
+      position: relative;
+      background: #fafafa;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      min-height: 38px;
+      overflow: hidden;
+    }
+    .value {
+      margin: 0;
+      padding: 9px 10px;
+      font: 11.5px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #111;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-all;
+    }
+    .value.expanded {
+      white-space: pre-wrap;
+      text-overflow: clip;
+      max-height: 120px;
+      overflow: auto;
+    }
+    .value.empty { color: #999; font-style: italic; }
     .actions {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       margin-top: 4px;
     }
-    button {
+    button.primary, button.secondary, button.ghost {
       border: 0;
-      border-radius: 999px;
-      padding: 9px 14px;
-      font: 600 13px/1 "Segoe UI", system-ui, sans-serif;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font: 600 12.5px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
       cursor: pointer;
     }
-    .primary { background: #17202a; color: #fff; }
-    .secondary { background: #eef1f4; color: #17202a; }
-    .ghost { background: transparent; color: #4d5966; }
+    button.primary, button.secondary {
+      color: #fff;
+      background: #1a73e8;
+    }
+    button.primary.copied, button.secondary.copied {
+      background: #0d7a3e;
+    }
+    button.ghost {
+      background: #fff;
+      color: #666;
+      border: 1px solid #e5e5e5;
+    }
+    button.primary:disabled, button.secondary:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    .flash {
+      margin: 0 0 8px;
+      min-height: 16px;
+      font-size: 12px;
+      color: #666;
+    }
     .pill {
       position: fixed;
       right: 16px;
       bottom: 16px;
       z-index: 2147483647;
-      border: 0;
+      border: 1px solid #e5e5e5;
       border-radius: 999px;
       padding: 10px 14px;
-      background: #17202a;
-      color: #fff;
-      font: 600 13px/1 "Segoe UI", system-ui, sans-serif;
+      background: #fff;
+      color: #111;
+      font: 600 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
       cursor: pointer;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
   `;
   shadow.append(style);
@@ -167,32 +264,47 @@ function createPanel(credentials) {
   dialog.className = "dialog";
   dialog.setAttribute("role", "dialog");
   dialog.setAttribute("aria-modal", "true");
-  dialog.setAttribute("aria-label", "ESPN fantasy cookies");
+  dialog.setAttribute("aria-label", "ESPN Fantasy Connect");
+
+  const inner = document.createElement("div");
+  inner.className = "inner";
 
   const title = document.createElement("h1");
-  title.textContent = "Copy your ESPN fantasy login";
+  title.textContent = "ESPN Fantasy Connect";
 
-  const note = document.createElement("p");
-  note.textContent =
-    "These are the espn_s2 and SWID cookies for the account you just signed into. Copy them and paste them into Grok bot yourself. This window does not send them anywhere. Close it when you are done — anyone who can see this screen can read them too.";
+  const sub = document.createElement("p");
+  sub.className = "sub";
+  sub.textContent = "Copy each value into Fantasy Football GM's secure fields.";
 
   const status = document.createElement("p");
-  status.hidden = true;
+  const ready = !!(credentials.espn_s2 && credentials.swid);
+  status.className = ready ? "status ready" : "status warn";
+  status.innerHTML = ready
+    ? '<span class="dot" aria-hidden="true"></span><span>Ready</span>'
+    : '<span class="dot" aria-hidden="true"></span><span>Not signed in</span>';
 
-  const both = document.createElement("button");
-  both.className = "primary";
-  both.type = "button";
-  both.textContent = "Copy both";
+  const note = document.createElement("p");
+  note.className = "note";
+  note.textContent =
+    "These are the espn_s2 and SWID cookies for the account you signed into. Copy them yourself into chat. This window does not send them anywhere.";
+
+  const flash = document.createElement("p");
+  flash.className = "flash";
+
+  const s2Card = field("espn_s2", credentials.espn_s2);
+  const swidCard = field("SWID", credentials.swid);
 
   const copyS2 = document.createElement("button");
-  copyS2.className = "secondary";
+  copyS2.className = "primary";
   copyS2.type = "button";
   copyS2.textContent = "Copy espn_s2";
+  copyS2.disabled = !credentials.espn_s2;
 
   const copySwid = document.createElement("button");
   copySwid.className = "secondary";
   copySwid.type = "button";
   copySwid.textContent = "Copy SWID";
+  copySwid.disabled = !credentials.swid;
 
   const close = document.createElement("button");
   close.className = "ghost";
@@ -201,43 +313,30 @@ function createPanel(credentials) {
 
   const actions = document.createElement("div");
   actions.className = "actions";
-  actions.append(both, copyS2, copySwid, close);
+  actions.append(copyS2, copySwid, close);
 
-  dialog.append(
-    title,
-    note,
-    field("espn_s2", credentials.espn_s2),
-    field("SWID", credentials.swid),
-    status,
-    actions
-  );
+  inner.append(title, sub, status, note, s2Card, swidCard, flash, actions);
+  dialog.append(inner);
   overlay.append(dialog);
   shadow.append(overlay);
   document.documentElement.append(host);
 
-  function flash(message) {
-    status.hidden = false;
-    status.textContent = message;
+  function setFlash(message) {
+    flash.textContent = message;
   }
 
-  async function onCopy(text, label) {
+  async function onCopy(text, label, button) {
     if (!text) {
-      flash(`${label} is not in this browser yet.`);
+      setFlash(`${label} is not in this browser yet.`);
       return;
     }
     const copied = await copyText(text);
-    flash(copied ? `${label} copied.` : "Copy failed. Select the text and copy it manually.");
+    if (copied) flashCopied(button, label);
+    else setFlash("Copy failed. Select the text and copy it manually.");
   }
 
-  both.addEventListener("click", () => {
-    if (!credentials.espn_s2 || !credentials.swid) {
-      flash("Both cookies are not here yet. Finish signing in, then reopen this.");
-      return;
-    }
-    onCopy(payload(credentials), "Both cookies");
-  });
-  copyS2.addEventListener("click", () => onCopy(credentials.espn_s2, "espn_s2"));
-  copySwid.addEventListener("click", () => onCopy(credentials.swid, "SWID"));
+  copyS2.addEventListener("click", () => onCopy(credentials.espn_s2, "espn_s2", copyS2));
+  copySwid.addEventListener("click", () => onCopy(credentials.swid, "SWID", copySwid));
 
   function dismiss() {
     setDismissed(true);
@@ -270,14 +369,14 @@ function showReopenPill() {
       right: 16px;
       bottom: 16px;
       z-index: 2147483647;
-      border: 0;
+      border: 1px solid #e5e5e5;
       border-radius: 999px;
       padding: 10px 14px;
-      background: #17202a;
-      color: #fff;
-      font: 600 13px/1 "Segoe UI", system-ui, sans-serif;
+      background: #fff;
+      color: #111;
+      font: 600 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
       cursor: pointer;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
   `;
   const button = document.createElement("button");
