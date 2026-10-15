@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "ESPN Fantasy Connect",
+  "version": "1.0.0",
+  "description": "Shows your ESPN fantasy cookies in a dialog so you can copy them yourself.",
+  "permissions": ["cookies"],
+  "host_permissions": ["https://espn.com/*", "https://*.espn.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://fantasy.espn.com/*",
+        "https://www.espn.com/fantasy/*",
+        "https://espn.com/fantasy/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
